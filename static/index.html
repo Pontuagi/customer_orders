@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Orders</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, button { margin: 5px; padding: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+</style>
+</head>
+<body>
+
+<h2>Add New Customer</h2>
+<input type="text" id="customerCode" placeholder="Customer Code">
+<input type="text" id="customerName" placeholder="Customer Name">
+<input type="text" id="customerLocation" placeholder="Location">
+<button onclick="addCustomer()">Add Customer</button>
+
+<h2>Add New Order</h2>
+<input type="number" id="customerId" placeholder="Customer ID">
+<input type="text" id="orderItem" placeholder="Item">
+<input type="number" id="orderAmount" placeholder="Amount" step="0.01">
+<button onclick="addOrder()">Add Order</button>
+
+<h2>Customers</h2>
+<button onclick="fetchCustomers()">Refresh Customers</button>
+<table id="customersTable">
+    <tr>
+        <th>Customer ID</th>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Location</th>
+    </tr>
+</table>
+
+<h2>Orders</h2>
+<button onclick="fetchOrders()">Refresh Orders</button>
+<table id="ordersTable">
+    <tr>
+        <th>Order ID</th>
+        <th>Customer ID</th>
+        <th>Item</th>
+        <th>Amount</th>
+        <th>Order Time</th>
+    </tr>
+</table>
+
+<script>
+    const API_URL = "http://127.0.0.1:8000";
+
+    // Add a new customer
+    async function addCustomer() {
+        const customerCode = document.getElementById("customerCode").value;
+        const customerName = document.getElementById("customerName").value;
+        const customerLocation = document.getElementById("customerLocation").value;
+
+        const response = await fetch(`${API_URL}/customers/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                customer_code: customerCode,
+                name: customerName,
+                location: customerLocation
+            })
+        });
+        const result = await response.json();
+        alert(result.message || "Customer added successfully");
+    }
+
+    // Add a new order
+    async function addOrder() {
+        const customerId = document.getElementById("customerId").value;
+        const orderItem = document.getElementById("orderItem").value;
+        const orderAmount = document.getElementById("orderAmount").value;
+
+        const response = await fetch(`${API_URL}/orders/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                customer_id: parseInt(customerId),
+                item: orderItem,
+                amount: parseFloat(orderAmount)
+            })
+        });
+        const result = await response.json();
+        alert(result.message || "Order added successfully");
+    }
+
+    // Fetch and display customers
+    async function fetchCustomers() {
+        const response = await fetch(`${API_URL}/customers/`);
+        const customers = await response.json();
+        const customersTable = document.getElementById("customersTable");
+
+        // Clear existing table rows
+        customersTable.innerHTML = `
+            <tr>
+                <th>Customer ID</th>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Location</th>
+            </tr>
+        `;
+
+        // Populate table with customer data
+        customers.forEach(customer => {
+            const row = customersTable.insertRow();
+            row.insertCell(0).textContent = customer.customer_id;
+            row.insertCell(1).textContent = customer.customer_code;
+            row.insertCell(2).textContent = customer.name;
+            row.insertCell(3).textContent = customer.location;
+        });
+    }
+
+    // Fetch and display orders
+    async function fetchOrders() {
+        const response = await fetch(`${API_URL}/orders/`);
+        const orders = await response.json();
+        const ordersTable = document.getElementById("ordersTable");
+
+        // Clear existing table rows
+        ordersTable.innerHTML = `
+            <tr>
+                <th>Order ID</th>
+                <th>Customer ID</th>
+                <th>Item</th>
+                <th>Amount</th>
+                <th>Order Time</th>
+            </tr>
+        `;
+
+        // Populate table with order data
+        orders.forEach(order => {
+            const row = ordersTable.insertRow();
+            row.insertCell(0).textContent = order.order_id;
+            row.insertCell(1).textContent = order.customer_id;
+            row.insertCell(2).textContent = order.item;
+            row.insertCell(3).textContent = order.amount;
+            row.insertCell(4).textContent = order.order_time;
+        });
+    }
+</script>
+
+</body>
+</html>
