@@ -18,38 +18,32 @@
   <body>
     <h2>Login Page</h2>
     <button onclick="login()">Login</button>
+    <button onclick="register()">Register</button>
     <button onclick="logout()">Logout</button>
 
     <script>
       const API_URL = "http://127.0.0.1:8000";
 
-      async function fetchAuthConfig() {
-        const response = await fetch(`${API_URL}/auth-config/`);
-        const data = await response.json();
-        return data;
-      }
-
+      // Redirect to login route
       async function login() {
-        const { domain, clientId, audience } = await fetchAuthConfig();
-        const authUrl = `https://${domain}/authorize?response_type=token&client_id=${clientId}&redirect_uri=http://127.0.0.1:8000/callback&scope=openid profile email&audience=${audience}`;
-        window.location.href = authUrl;
+        window.location.href = `${API_URL}/login`;
       }
 
+      // Redirect to register route
+      async function register() {
+        window.location.href = `${API_URL}/register`;
+      }
+
+      // Redirect to logout route
       async function logout() {
-        const { domain, clientId } = await fetchAuthConfig();
-        localStorage.removeItem("access_token");
-        window.location.href = `https://${domain}/v2/logout?client_id=${clientId}&returnTo=http://127.0.0.1:8000`;
+        window.location.href = `${API_URL}/logout`;
       }
 
+      // Auto-redirect to customer orders if already logged in
       window.onload = () => {
-        const urlParams = new URLSearchParams(
-          window.location.hash.substring(1)
-        );
-        const token = urlParams.get("access_token");
+        const token = localStorage.getItem("access_token");
         if (token) {
-          localStorage.setItem("access_token", token);
-          window.location.hash = "";
-          window.location.href = "customer_orders.html";
+          window.location.href = "static/customer_orders.html";
         }
       };
     </script>
