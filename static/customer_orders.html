@@ -70,18 +70,20 @@
       const API_URL = "http://localhost:8000";
 
       window.onload = async () => {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          window.location.href = "/static/login.html";
+          return;
+        }
+
         const urlParams = new URLSearchParams(
           window.location.hash.substring(1)
         );
-        const token = urlParams.get("access_token");
+        const accessToken = urlParams.get("access_token");
 
-        if (!token) {
-          alert("Unauthorized access. Redirecting to login.");
-          window.location.href = "login.html";
-        } else {
-          localStorage.setItem("access_token", token);
-          window.location.hash = ""; // Clean URL hash
-          // You can now use `token` for authenticated API requests
+        if (accessToken) {
+          localStorage.setItem("access_token", accessToken);
+          window.location.hash = "";
         }
       };
 
@@ -103,13 +105,13 @@
 
         // Clear existing table rows
         customersTable.innerHTML = `
-            <tr>
-              <th>Customer ID</th>
-              <th>Code</th>
-              <th>Name</th>
-              <th>Location</th>
-            </tr>
-          `;
+                      <tr>
+                        <th>Customer ID</th>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Location</th>
+                      </tr>
+                    `;
 
         // Populate table with customer data
         customers.forEach((customer) => {
@@ -189,15 +191,18 @@
         }
 
         const response = await fetch(`${API_URL}/orders/`, {
+          method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        const orders = await response.json();
-        const ordersTable = document.getElementById("ordersTable");
 
-        // Clear existing table rows
-        ordersTable.innerHTML = `
+        if (response.ok) {
+          const orders = await response.json();
+          const ordersTable = document.getElementById("ordersTable");
+
+          // Clear existing table rows
+          ordersTable.innerHTML = `
             <tr>
               <th>Order ID</th>
               <th>Customer ID</th>
@@ -207,15 +212,18 @@
             </tr>
           `;
 
-        // Populate table with order data
-        orders.forEach((order) => {
-          const row = ordersTable.insertRow();
-          row.insertCell(0).textContent = order.order_id;
-          row.insertCell(1).textContent = order.customer_id;
-          row.insertCell(2).textContent = order.item;
-          row.insertCell(3).textContent = order.amount;
-          row.insertCell(4).textContent = order.order_time;
-        });
+          // Populate table with order data
+          orders.forEach((order) => {
+            const row = ordersTable.insertRow();
+            row.insertCell(0).textContent = order.order_id;
+            row.insertCell(1).textContent = order.customer_id;
+            row.insertCell(2).textContent = order.item;
+            row.insertCell(3).textContent = order.amount;
+            row.insertCell(4).textContent = order.order_time;
+          });
+        } else {
+          alert("Failed to fetch orders.");
+        }
       }
     </script>
   </body>
