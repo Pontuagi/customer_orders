@@ -1,8 +1,15 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi.security import OAuth2AuthorizationCodeBearer
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from typing import List
 from db import get_db_connection
 from models import CustomerCreate, OrderCreate
+from fastapi_auth0 import Auth0, Auth0User
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -15,8 +22,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Auth0 Configuration
+AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
+AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
+AUTH0_API_AUDIENCE = os.getenv("AUTH0_API_AUDIENCE")
+
+auth0 = Auth0(domain=AUTH0_DOMAIN, api_audience=AUTH0_API_AUDIENCE)
+
+# share the auth0 instance with frontend
+@app.get("/auth-config/")
+async def get_auth_config():
+    return JSONResponse(content={
+        "AUTH0_DOMAIN": AUTH0_DOMAIN,
+        "AUTH0_CLIENT_ID": AUTH0_CLIENT_ID,
+        "AUTH0_API_AUDIENCE": AUTH0_API_AUDIENCE,
+    })
+
 # Endpoint to add a new customer
-@app.post("/customers/", status_code=201)
+@app.post("/customers/", status_code=201, dependencies=[Depends(auth0.get_user)])
 def create_customer(customer: CustomerCreate):
     conn = get_db_connection()
     cur = conn.cursor()
@@ -41,7 +65,7 @@ def create_customer(customer: CustomerCreate):
         conn.close()
 
 # Endpoint to add a new order
-@app.post("/orders/", status_code=201)
+@app.post("/orders/", status_code=201, dependencies=[Depends(auth0.get_user)])
 def create_order(order: OrderCreate):
     conn = get_db_connection()
     cur = conn.cursor()
@@ -63,7 +87,7 @@ def create_order(order: OrderCreate):
         conn.close()
 
 # Endpoint to list all customers
-@app.get("/customers/", status_code=200)
+@app.get("/customers/", status_code=200, dependencies=[Depends(auth0.get_user)])
 def list_customers():
     conn = get_db_connection()
     cur = conn.cursor()
@@ -76,7 +100,7 @@ def list_customers():
         conn.close()
 
 # Endpoint to list all orders
-@app.get("/orders/", status_code=200)
+@app.get("/orders/", status_code=200,  dependencies=[Depends(auth0.get_user)])
 def list_orders():
     conn = get_db_connection()
     cur = conn.cursor()

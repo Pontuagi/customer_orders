@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      button {
+        margin: 5px;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Login Page</h2>
+    <button onclick="login()">Login</button>
+    <button onclick="logout()">Logout</button>
+
+    <script>
+      const API_URL = "http://127.0.0.1:8000";
+
+      async function fetchAuthConfig() {
+        const response = await fetch(`${API_URL}/auth-config/`);
+        const data = await response.json();
+        return data;
+      }
+
+      async function login() {
+        const { domain, clientId, audience } = await fetchAuthConfig();
+        const authUrl = `https://${domain}/authorize?response_type=token&client_id=${clientId}&redirect_uri=http://127.0.0.1:8000/callback&scope=openid profile email&audience=${audience}`;
+        window.location.href = authUrl;
+      }
+
+      async function logout() {
+        const { domain, clientId } = await fetchAuthConfig();
+        localStorage.removeItem("access_token");
+        window.location.href = `https://${domain}/v2/logout?client_id=${clientId}&returnTo=http://127.0.0.1:8000`;
+      }
+
+      window.onload = () => {
+        const urlParams = new URLSearchParams(
+          window.location.hash.substring(1)
+        );
+        const token = urlParams.get("access_token");
+        if (token) {
+          localStorage.setItem("access_token", token);
+          window.location.hash = "";
+          window.location.href = "customer_orders.html";
+        }
+      };
+    </script>
+  </body>
+</html>
