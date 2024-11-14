@@ -77,7 +77,7 @@ async def logout():
         f"https://{AUTH0_DOMAIN}/v2/logout?"
         + urlencode({
             "client_id": AUTH0_CLIENT_ID,
-            "returnTo": "http://127.0.0.1:8000/login.html"
+            "returnTo": "http://127.0.0.1:5500/static/login.html"
         })
     )
     return RedirectResponse(url=logout_url)
@@ -127,7 +127,7 @@ async def callback(request: Request):
 
 
 # Endpoint to add a new customer
-@app.post("/customers/", status_code=201, dependencies=[Depends(auth0.get_user)])
+@app.post("/customers/", status_code=201)
 def create_customer(customer: CustomerCreate):
     conn = get_db_connection()
     cur = conn.cursor()
@@ -152,7 +152,7 @@ def create_customer(customer: CustomerCreate):
         conn.close()
 
 # Endpoint to add a new order
-@app.post("/orders/", status_code=201, dependencies=[Depends(auth0.get_user)])
+@app.post("/orders/", status_code=201)
 def create_order(order: OrderCreate):
     conn = get_db_connection()
     cur = conn.cursor()
@@ -174,7 +174,7 @@ def create_order(order: OrderCreate):
         conn.close()
 
 # Endpoint to list all customers
-@app.get("/customers/", status_code=200, dependencies=[Depends(auth0.get_user)])
+@app.get("/customers/", status_code=200)
 def list_customers():
     conn = get_db_connection()
     cur = conn.cursor()
@@ -187,7 +187,7 @@ def list_customers():
         conn.close()
 
 # Endpoint to list all orders
-@app.get("/orders/", status_code=200,  dependencies=[Depends(auth0.get_user)])
+@app.get("/orders/", status_code=200)
 def list_orders():
     conn = get_db_connection()
     cur = conn.cursor()

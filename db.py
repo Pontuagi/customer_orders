@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 
 """
 Python function to authenticate a user and return a token in postgresql
-
 """
 
 load_dotenv()

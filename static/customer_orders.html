@@ -31,6 +31,7 @@
     </style>
   </head>
   <body>
+    <button onclick="logout()">Logout</button>
     <h2>Add New Customer</h2>
     <input type="text" id="customerCode" placeholder="Customer Code" />
     <input type="text" id="customerName" placeholder="Customer Name" />
@@ -87,6 +88,11 @@
         }
       };
 
+      // Redirect to logout route
+      async function logout() {
+        window.location.href = `${API_URL}/logout`;
+      }
+
       // Fetch and display customers
       async function fetchCustomers() {
         const token = localStorage.getItem("access_token");
@@ -95,11 +101,7 @@
           return;
         }
 
-        const response = await fetch(`${API_URL}/customers/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(`${API_URL}/customers/`);
         const customers = await response.json();
         const customersTable = document.getElementById("customersTable");
 
@@ -127,8 +129,7 @@
       async function addCustomer() {
         const customerCode = document.getElementById("customerCode").value;
         const customerName = document.getElementById("customerName").value;
-        const customerLocation =
-          document.getElementById("customerLocation").value;
+        const customerLocation = document.getElementById("customerLocation").value;
 
         const response = await fetch(`${API_URL}/customers/`, {
           method: "POST",
@@ -190,12 +191,7 @@
           return;
         }
 
-        const response = await fetch(`${API_URL}/orders/`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(`${API_URL}/orders/`);
 
         if (response.ok) {
           const orders = await response.json();
