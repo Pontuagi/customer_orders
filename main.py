@@ -12,6 +12,8 @@ import os
 from dotenv import load_dotenv
 import httpx
 import psycopg2
+from psycopg2.extras import RealDictCursor
+from send_sms import SendSMS
 
 load_dotenv()
 
@@ -169,7 +171,12 @@ def create_order(order: OrderCreate):
         )
         result = cur.fetchone()
         conn.commit()
-        return {"order_id": result["order_id"], "message": "Order created successfully"}
+    
+        # Send the SMS using SendSMS class
+        sms_service = SendSMS()
+        sms_service.sending_order(order.telephone, order.item, order.amount, order.order_time)
+        
+        return {"order_id": result["order_id"], "message": "Order created successfully and message sent successfully"}
     except psycopg2.errors.ForeignKeyViolation:
         raise HTTPException(
             status_code=400,
