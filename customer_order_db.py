@@ -52,6 +52,8 @@ def create_tables():
             dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT
         ) as conn:
             with conn.cursor() as cur:
+                cur.execute("DROP TABLE IF EXISTS orders CASCADE;")
+                cur.execute("DROP TABLE IF EXISTS customers CASCADE;")
 
                 # SQL Command to create customers table
                 create_customers_table = """
@@ -59,6 +61,7 @@ def create_tables():
                     customer_id SERIAL PRIMARY KEY,
                     customer_code VARCHAR(50) UNIQUE NOT NULL,
                     name VARCHAR(100) NOT NULL,
+                    telephone VARCHAR(15) UNIQUE NOT NULL,
                     location VARCHAR(100)
                 );
                 """
@@ -67,7 +70,7 @@ def create_tables():
                 create_orders_table = """
                 CREATE TABLE IF NOT EXISTS orders (
                     order_id SERIAL PRIMARY KEY,
-                    customer_id INTEGER REFERENCES customers(customer_id) ON DELETE CASCADE,
+                    telephone VARCHAR(15) REFERENCES customers(telephone) ON DELETE CASCADE,
                     item VARCHAR(255) NOT NULL,
                     amount NUMERIC(10, 2) NOT NULL CHECK (amount >= 0),
                     order_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -91,33 +94,33 @@ def insert_sample_data():
         ) as conn:
             with conn.cursor() as cur:
 
-                # Insert sample customers
+                # Insert sample customers with telephone numbers
                 customers_data = [
-                    ("CUST001", "John Doe", "New York"),
-                    ("CUST002", "Jane Smith", "Los Angeles"),
-                    ("CUST003", "Alice Johnson", "Chicago"),
-                    ("CUST004", "Bob Brown", "San Francisco"),
+                    ("CUST001", "John Doe", "+254701234567", "Nairobi"),
+                    ("CUST002", "Jane Smith", "+254712345678", "Mombasa"),
+                    ("CUST003", "Alice Johnson", "+254723456789", "Kisumu"),
+                    ("CUST004", "Bob Brown", "+254734567890", "Eldoret"),
                 ]
                 cur.executemany(
                     """
-                    INSERT INTO customers (customer_code, name, location)
-                    VALUES (%s, %s, %s)
+                    INSERT INTO customers (customer_code, name, telephone, location)
+                    VALUES (%s, %s, %s, %s)
                     ON CONFLICT (customer_code) DO NOTHING;
                     """,
                     customers_data,
                 )
 
-                # Insert sample orders
+                # Insert sample orders using telephone numbers
                 orders_data = [
-                    (1, "Laptop", 1200.00),
-                    (2, "Smartphone", 800.00),
-                    (1, "Headphones", 150.00),
-                    (3, "Keyboard", 100.00),
-                    (4, "Monitor", 300.00),
+                    ("+254701234567", "Laptop", 1200.00),
+                    ("+254712345678", "Smartphone", 800.00),
+                    ("+254701234567", "Headphones", 150.00),
+                    ("+254723456789", "Keyboard", 100.00),
+                    ("+254734567890", "Monitor", 300.00),
                 ]
                 cur.executemany(
                     """
-                    INSERT INTO orders (customer_id, item, amount)
+                    INSERT INTO orders (telephone, item, amount)
                     VALUES (%s, %s, %s);
                     """,
                     orders_data,

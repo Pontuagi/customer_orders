@@ -11,6 +11,7 @@ from fastapi_auth0 import Auth0, Auth0User
 import os
 from dotenv import load_dotenv
 import httpx
+import psycopg2
 
 load_dotenv()
 
@@ -135,12 +136,12 @@ def create_customer(customer: CustomerCreate):
     try:
         cur.execute(
             """
-            INSERT INTO customers (customer_code, name, location)
-            VALUES (%s, %s, %s)
+            INSERT INTO customers (customer_code, name, telephone, location)
+            VALUES (%s, %s, %s, %s)
             ON CONFLICT (customer_code) DO NOTHING
             RETURNING customer_id;
             """,
-            (customer.customer_code, customer.name, customer.location),
+            (customer.customer_code, customer.name, customer.telephone, customer.location),
         )
         result = cur.fetchone()
         if not result:
@@ -160,15 +161,25 @@ def create_order(order: OrderCreate):
     try:
         cur.execute(
             """
-            INSERT INTO orders (customer_id, item, amount, order_time)
+            INSERT INTO orders (telephone, item, amount, order_time)
             VALUES (%s, %s, %s, COALESCE(%s, CURRENT_TIMESTAMP))
             RETURNING order_id;
             """,
-            (order.customer_id, order.item, order.amount, order.order_time),
+            (order.telephone, order.item, order.amount, order.order_time),
         )
         result = cur.fetchone()
         conn.commit()
         return {"order_id": result["order_id"], "message": "Order created successfully"}
+    except psycopg2.errors.ForeignKeyViolation:
+        raise HTTPException(
+            status_code=400,
+            detail="The customer Telephone does not exist. Please provide a valid customer Telephone."
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"An unexpected error occurred: {str(e)}"
+        )
     finally:
         cur.close()
         conn.close()

@@ -35,11 +35,12 @@
     <h2>Add New Customer</h2>
     <input type="text" id="customerCode" placeholder="Customer Code" />
     <input type="text" id="customerName" placeholder="Customer Name" />
+    <input type="text" id="customerTelephone" placeholder="Telephone Number" />
     <input type="text" id="customerLocation" placeholder="Location" />
     <button onclick="addCustomer()">Add Customer</button>
 
     <h2>Add New Order</h2>
-    <input type="number" id="customerId" placeholder="Customer ID" />
+    <input type="text" id="telephoneOrderNumber" placeholder="Customer Telephone Number" />
     <input type="text" id="orderItem" placeholder="Item" />
     <input type="number" id="orderAmount" placeholder="Amount" step="0.01" />
     <button onclick="addOrder()">Add Order</button>
@@ -51,6 +52,7 @@
         <th>Customer ID</th>
         <th>Code</th>
         <th>Name</th>
+        <th>Telephone Number</th>
         <th>Location</th>
       </tr>
     </table>
@@ -60,7 +62,7 @@
     <table id="ordersTable">
       <tr>
         <th>Order ID</th>
-        <th>Customer ID</th>
+        <th>Telephone Number</th>
         <th>Item</th>
         <th>Amount</th>
         <th>Order Time</th>
@@ -95,25 +97,20 @@
 
       // Fetch and display customers
       async function fetchCustomers() {
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-          alert("You need to log in first.");
-          return;
-        }
-
         const response = await fetch(`${API_URL}/customers/`);
         const customers = await response.json();
         const customersTable = document.getElementById("customersTable");
 
         // Clear existing table rows
         customersTable.innerHTML = `
-                      <tr>
-                        <th>Customer ID</th>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Location</th>
-                      </tr>
-                    `;
+          <tr>
+            <th>Customer ID</th>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Telephone Number</th>
+            <th>Location</th>
+          </tr>
+        `;
 
         // Populate table with customer data
         customers.forEach((customer) => {
@@ -121,7 +118,8 @@
           row.insertCell(0).textContent = customer.customer_id;
           row.insertCell(1).textContent = customer.customer_code;
           row.insertCell(2).textContent = customer.name;
-          row.insertCell(3).textContent = customer.location;
+          row.insertCell(3).textContent = customer.telephone;
+          row.insertCell(4).textContent = customer.location;
         });
       }
 
@@ -129,6 +127,7 @@
       async function addCustomer() {
         const customerCode = document.getElementById("customerCode").value;
         const customerName = document.getElementById("customerName").value;
+        const customerTelephone = document.getElementById("customerTelephone").value;
         const customerLocation = document.getElementById("customerLocation").value;
 
         const response = await fetch(`${API_URL}/customers/`, {
@@ -139,15 +138,17 @@
           body: JSON.stringify({
             customer_code: customerCode,
             name: customerName,
+            telephone: customerTelephone,
             location: customerLocation,
           }),
         });
+
         const result = await response.json();
         if (response.ok) {
           alert(result.message || "Customer added successfully");
-          // Clear input fields
           document.getElementById("customerCode").value = "";
           document.getElementById("customerName").value = "";
+          document.getElementById("customerTelephone").value = "";
           document.getElementById("customerLocation").value = "";
         } else {
           alert(result.detail || "Failed to add customer");
@@ -156,7 +157,7 @@
 
       // Add a new order
       async function addOrder() {
-        const customerId = document.getElementById("customerId").value;
+        const telephoneOrderNumber = document.getElementById("telephoneOrderNumber").value;
         const orderItem = document.getElementById("orderItem").value;
         const orderAmount = document.getElementById("orderAmount").value;
 
@@ -166,16 +167,16 @@
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            customer_id: parseInt(customerId),
+            telephone: telephoneOrderNumber,
             item: orderItem,
             amount: parseFloat(orderAmount),
           }),
         });
+
         const result = await response.json();
         if (response.ok) {
           alert(result.message || "Order added successfully");
-          // Clear input fields
-          document.getElementById("customerId").value = "";
+          document.getElementById("telephoneOrderNumber").value = "";
           document.getElementById("orderItem").value = "";
           document.getElementById("orderAmount").value = "";
         } else {
@@ -185,41 +186,30 @@
 
       // Fetch and display orders
       async function fetchOrders() {
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-          alert("You need to log in first.");
-          return;
-        }
-
         const response = await fetch(`${API_URL}/orders/`);
+        const orders = await response.json();
+        const ordersTable = document.getElementById("ordersTable");
 
-        if (response.ok) {
-          const orders = await response.json();
-          const ordersTable = document.getElementById("ordersTable");
+        // Clear existing table rows
+        ordersTable.innerHTML = `
+          <tr>
+            <th>Order ID</th>
+            <th>Telephone Number</th>
+            <th>Item</th>
+            <th>Amount</th>
+            <th>Order Time</th>
+          </tr>
+        `;
 
-          // Clear existing table rows
-          ordersTable.innerHTML = `
-            <tr>
-              <th>Order ID</th>
-              <th>Customer ID</th>
-              <th>Item</th>
-              <th>Amount</th>
-              <th>Order Time</th>
-            </tr>
-          `;
-
-          // Populate table with order data
-          orders.forEach((order) => {
-            const row = ordersTable.insertRow();
-            row.insertCell(0).textContent = order.order_id;
-            row.insertCell(1).textContent = order.customer_id;
-            row.insertCell(2).textContent = order.item;
-            row.insertCell(3).textContent = order.amount;
-            row.insertCell(4).textContent = order.order_time;
-          });
-        } else {
-          alert("Failed to fetch orders.");
-        }
+        // Populate table with order data
+        orders.forEach((order) => {
+          const row = ordersTable.insertRow();
+          row.insertCell(0).textContent = order.order_id;
+          row.insertCell(1).textContent = order.telephone;
+          row.insertCell(2).textContent = order.item;
+          row.insertCell(3).textContent = order.amount;
+          row.insertCell(4).textContent = order.order_time;
+        });
       }
     </script>
   </body>
