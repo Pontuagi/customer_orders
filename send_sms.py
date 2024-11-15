@@ -44,7 +44,7 @@ class SendSMS:
         recipients = [customer_telephone]
 
         # Set your shortCode or senderId (if applicable)
-        sender = "XXYYZZ"
+        sender = "KBenedict"
 
         try:
             # Sending the message
