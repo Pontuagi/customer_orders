@@ -1,10 +1,10 @@
-import africastalking
-from dotenv import load_dotenv
-import os
-
 """
 Python class to send an SMS to a customer with their order details.
 """
+
+import os
+import africastalking
+from dotenv import load_dotenv
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -22,6 +22,9 @@ africastalking.initialize(
 sms = africastalking.SMS
 
 class SendSMS:
+    """
+    Class containing methods to send SMS messages.
+    """
     def __init__(self):
         self.sms = sms
 

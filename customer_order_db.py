@@ -1,40 +1,21 @@
-import psycopg2
-from psycopg2 import sql
-import os
-from dotenv import load_dotenv
-
-
 """
 Module to create and manage the customer_order_db database.
 This module provides functions to create the database, create tables, insert sample data.
 """
 
+import os
+from dotenv import load_dotenv
+import psycopg2
+from psycopg2 import sql
+from db import connect_to_server, get_db_connection, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
 load_dotenv()
 
-# Database connection parameters
-DB_NAME = os.getenv("DB_NAME")
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
-
-
-# Function to connect to the PostgreSQL server
-def connect_to_server():
-    try:
-        with psycopg2.connect(
-            dbname="postgres", user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT
-        ) as conn:
-            conn.autocommit = True
-            return conn
-    except Exception as e:
-        print("Error connecting to PostgreSQL server:", e)
-        return None
-
-
 # Function to create the database if it does not exist
 def create_database():
+    """
+    Create the customer_order_db database if it does not exist.
+    """
     conn = connect_to_server()
     if conn is None:
         return
@@ -54,6 +35,9 @@ def create_database():
 
 # Function to create tables in the customer_order_db
 def create_tables():
+    """
+    Create tables for customers and orders in the customer_order_db database.
+    """
     try:
         with psycopg2.connect(
             dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT
@@ -95,6 +79,9 @@ def create_tables():
 
 # Function to insert sample data
 def insert_sample_data():
+    """
+    Insert sample data into the customers and orders tables.
+    """
     try:
         with psycopg2.connect(
             dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT

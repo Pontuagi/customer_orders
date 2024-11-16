@@ -1,21 +1,33 @@
-from pydantic import BaseModel, Field
-from typing import Optional
-from datetime import datetime
-
 """
 Module to define Pydantic models for customer and order input.
 """
 
-# Pydantic models for customer input
+from typing import Optional
+from datetime import datetime
+from pydantic import BaseModel, Field
+
 class CustomerCreate(BaseModel):
+    """
+    Customer creation input model.
+    """
     customer_code: str
     name: str
-    telephone: str = Field(..., pattern=r"^\+?\d{10,15}$", description="Customer telephone number with optional country code")
+    telephone: str = Field(
+        ...,
+        pattern=r"^\+?\d{10,15}$",
+        description="Customer telephone number with optional country code"
+    )
     location: Optional[str] = None
 
-# Pydantic model for order input
 class OrderCreate(BaseModel):
-    telephone: str = Field(..., pattern=r"^\+?\d{10,15}$", description="Customer telephone number with optional country code")
+    """
+    Order creation input model.
+    """
+    telephone: str = Field(
+        ...,
+        pattern=r"^\+?\d{10,15}$",
+        description="Customer telephone number with optional country code"
+    )
     item: str
     amount: float
     order_time: Optional[datetime] = None
