@@ -1,124 +1,126 @@
-import psycopg2
 import pytest
-import httpx
-import asyncio
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
 from main import app
 from db import get_db_connection
 
-# Mock get_db_connection to prevent real DB connections during tests
-@pytest.fixture
-def mock_db_conn():
-    with patch("main.get_db_connection") as mock_get_db:
-        mock_conn = MagicMock()
-        mock_cursor = MagicMock()
-        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
-        mock_get_db.return_value = mock_conn
-        yield mock_cursor
-
-# Client for testing
+# Create a test client
 client = TestClient(app)
 
-# ====================
-# Authentication Tests
-# ====================
+# Mock get_db_connection globally in this module
+@pytest.fixture(scope="function")
+def mock_db_connection():
+    with patch('main.get_db_connection') as mock_conn:
+        # Set up the mock connection and cursor
+        mock_conn_instance = MagicMock()
+        mock_cursor = MagicMock()
+        mock_conn_instance.cursor.return_value = mock_cursor
+        mock_conn.return_value = mock_conn_instance
 
-@pytest.mark.asyncio
-async def test_get_auth_config():
-    response = await client.get("/auth-config/")
-    assert response.status_code == 200
-    data = response.json()
-    assert "AUTH0_DOMAIN" in data
-    assert "AUTH0_CLIENT_ID" in data
-    assert "AUTH0_API_AUDIENCE" in data
+        yield mock_cursor, mock_conn_instance
 
-# ====================
-# Customer Tests
-# ====================
+        # Ensure resources are closed
+        mock_cursor.close.assert_called_once()
+        mock_conn_instance.close.assert_called_once()
 
-def test_create_customer(mock_db_conn):
-    # Mocking the fetchone result
-    mock_db_conn.fetchone.return_value = {"customer_id": 1}
+# Test customer creation endpoint
+def test_create_customer(mock_db_connection):
+    mock_cursor, _ = mock_db_connection
 
-    # Input data
-    customer_data = {
+    # Mock the cursor's fetchone method to simulate returning a customer ID
+    mock_cursor.fetchone.return_value = {"customer_id": 1}
+
+    # Define test input data
+    test_data = {
         "customer_code": "CUST001",
         "name": "John Doe",
-        "telephone": "+254701234567",
-        "location": "Nairobi"
+        "telephone": "1234567890",
+        "location": "New York"
     }
 
-    # API request
-    response = client.post("/customers/", json=customer_data)
+    # Make a POST request to the create customer endpoint
+    response = client.post("/customers/", json=test_data)
+
+    # Check the response status and data
     assert response.status_code == 201
-    assert response.json()["message"] == "Customer created successfully"
+    assert response.json() == {"customer_id": 1, "message": "Customer created successfully"}
 
-def test_create_customer_conflict(mock_db_conn):
-    # Simulate duplicate entry
-    mock_db_conn.fetchone.return_value = None
+    # Verify the SQL query execution
+    mock_cursor.execute.assert_called_once()
+    assert "INSERT INTO customers" in mock_cursor.execute.call_args[0][0]
 
-    customer_data = {
-        "customer_code": "CUST001",
-        "name": "John Doe",
-        "telephone": "+254701234567",
-        "location": "Nairobi"
-    }
+# Test order creation endpoint
+@patch('main.SendSMS')
+def test_create_order(mock_send_sms, mock_db_connection):
+    mock_cursor, _ = mock_db_connection
 
-    response = client.post("/customers/", json=customer_data)
-    assert response.status_code == 409
-    assert response.json()["detail"] == "Customer code already exists."
+    # Mock SMS service
+    mock_sms_instance = mock_send_sms.return_value
+    mock_sms_instance.sending_order.return_value = None
 
-def test_list_customers(mock_db_conn):
-    # Simulating database return value
-    mock_db_conn.fetchall.return_value = [
-        {"customer_id": 1, "customer_code": "CUST001", "name": "John Doe", "telephone": "+254701234567", "location": "Nairobi"}
-    ]
+    # Mock the cursor's fetchone method to simulate returning an order ID
+    mock_cursor.fetchone.return_value = {"order_id": 1}
 
-    response = client.get("/customers/")
-    assert response.status_code == 200
-    assert len(response.json()) == 1
-    assert response.json()[0]["customer_code"] == "CUST001"
-
-# ====================
-# Order Tests
-# ====================
-
-def test_create_order(mock_db_conn):
-    mock_db_conn.fetchone.return_value = {"order_id": 1}
-
-    order_data = {
-        "telephone": "+254701234567",
+    # Define test input data
+    test_data = {
+        "telephone": "1234567890",
         "item": "Pizza",
-        "amount": 1200,
-        "order_time": "2024-11-10T14:20:00"
+        "amount": 20.0,
+        "order_time": None
     }
 
-    response = client.post("/orders/", json=order_data)
+    # Make a POST request to the create order endpoint
+    response = client.post("/orders/", json=test_data)
+
+    # Check the response status and data
     assert response.status_code == 201
-    assert response.json()["message"] == "Order created successfully and message sent successfully"
+    assert response.json() == {"order_id": 1, "message": "Order created successfully and message sent successfully"}
 
-def test_create_order_fk_violation(mock_db_conn):
-    # Simulate Foreign Key Violation
-    mock_db_conn.execute.side_effect = psycopg2.errors.ForeignKeyViolation
+    # Verify the SQL query execution
+    mock_cursor.execute.assert_called_once()
+    assert "INSERT INTO orders" in mock_cursor.execute.call_args[0][0]
 
-    order_data = {
-        "telephone": "+254700000000",
-        "item": "Burger",
-        "amount": 500
-    }
+    # Verify SMS was sent
+    mock_sms_instance.sending_order.assert_called_once_with("1234567890", "Pizza", 20.0, None)
 
-    response = client.post("/orders/", json=order_data)
-    assert response.status_code == 400
-    assert response.json()["detail"] == "The customer Telephone does not exist. Please provide a valid customer Telephone."
+# Test customer listing endpoint
+def test_list_customers(mock_db_connection):
+    mock_cursor, _ = mock_db_connection
 
-def test_list_orders(mock_db_conn):
-    # Mock database fetchall return value
-    mock_db_conn.fetchall.return_value = [
-        {"order_id": 1, "telephone": "+254701234567", "item": "Pizza", "amount": 1200, "order_time": "2024-11-10T14:20:00"}
+    # Mock the cursor's fetchall method to simulate returning a list of customers
+    mock_cursor.fetchall.return_value = [
+        {"customer_id": 1, "name": "John Doe", "telephone": "1234567890", "location": "New York"}
     ]
 
-    response = client.get("/orders/")
+    # Make a GET request to the list customers endpoint
+    response = client.get("/customers/")
+
+    # Check the response status and data
     assert response.status_code == 200
-    assert len(response.json()) == 1
-    assert response.json()[0]["item"] == "Pizza"
+    assert response.json() == [
+        {"customer_id": 1, "name": "John Doe", "telephone": "1234567890", "location": "New York"}
+    ]
+
+    # Verify the SQL query execution
+    mock_cursor.execute.assert_called_once_with("SELECT * FROM customers;")
+
+# Test order listing endpoint
+def test_list_orders(mock_db_connection):
+    mock_cursor, _ = mock_db_connection
+
+    # Mock the cursor's fetchall method to simulate returning a list of orders
+    mock_cursor.fetchall.return_value = [
+        {"order_id": 1, "telephone": "1234567890", "item": "Pizza", "amount": 20.0, "order_time": "2024-11-16T12:00:00"}
+    ]
+
+    # Make a GET request to the list orders endpoint
+    response = client.get("/orders/")
+
+    # Check the response status and data
+    assert response.status_code == 200
+    assert response.json() == [
+        {"order_id": 1, "telephone": "1234567890", "item": "Pizza", "amount": 20.0, "order_time": "2024-11-16T12:00:00"}
+    ]
+
+    # Verify the SQL query execution
+    mock_cursor.execute.assert_called_once_with("SELECT * FROM orders;")

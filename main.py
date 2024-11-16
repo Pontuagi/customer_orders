@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, Depends, Request
-# from fastapi.security import OAuth2AuthorizationCodeBearer
 from urllib.parse import urlencode
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -7,13 +6,19 @@ from fastapi.staticfiles import StaticFiles
 from typing import List
 from db import get_db_connection
 from models import CustomerCreate, OrderCreate
-from fastapi_auth0 import Auth0, Auth0User
+from fastapi_auth0 import Auth0
 import os
 from dotenv import load_dotenv
 import httpx
 import psycopg2
-from psycopg2.extras import RealDictCursor
 from send_sms import SendSMS
+
+"""
+Module to handle the FastAPI application.
+It contains the FastAPI application instance, the Auth0 configuration, and the routes for the application.
+The routes include the login, register, and logout routes,as well as the customers, and orders endpoints.
+The module also calls the SendSMS class for sending SMS messages.
+"""
 
 load_dotenv()
 
@@ -38,15 +43,6 @@ AUTH0_API_AUDIENCE = os.getenv("AUTH0_API_AUDIENCE")
 AUTH0_CALLBACK_URL = "http://127.0.0.1:8000/callback"
 
 auth0 = Auth0(domain=AUTH0_DOMAIN, api_audience=AUTH0_API_AUDIENCE)
-
-# share the auth0 instance with frontend
-@app.get("/auth-config/")
-async def get_auth_config():
-    return JSONResponse(content={
-        "AUTH0_DOMAIN": AUTH0_DOMAIN,
-        "AUTH0_CLIENT_ID": AUTH0_CLIENT_ID,
-        "AUTH0_API_AUDIENCE": AUTH0_API_AUDIENCE,
-    })
     
 # Auth0 Login Route
 @app.get("/login")

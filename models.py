@@ -2,6 +2,10 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
+"""
+Module to define Pydantic models for customer and order input.
+"""
+
 # Pydantic models for customer input
 class CustomerCreate(BaseModel):
     customer_code: str

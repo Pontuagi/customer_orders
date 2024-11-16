@@ -2,6 +2,10 @@ import africastalking
 from dotenv import load_dotenv
 import os
 
+"""
+Python class to send an SMS to a customer with their order details.
+"""
+
 # Load environment variables from the .env file
 load_dotenv()
 
@@ -57,7 +61,7 @@ class SendSMS:
 if __name__ == "__main__":
     sms_service = SendSMS()
     # Example data for testing
-    # customer_telephone = "+254722123123"
+    # customer_telephone = "+254759505343"
     # order_item = "Pizza Margherita"
     # order_amount = 10.99
     # order_time = "2024-11-14 13:45"

@@ -3,6 +3,13 @@ from psycopg2 import sql
 import os
 from dotenv import load_dotenv
 
+
+"""
+Module to create and manage the customer_order_db database.
+This module provides functions to create the database, create tables, insert sample data.
+"""
+
+
 load_dotenv()
 
 # Database connection parameters
