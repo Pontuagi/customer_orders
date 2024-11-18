@@ -7,19 +7,70 @@
     <style>
       body {
         font-family: Arial, sans-serif;
-        margin: 20px;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+        color: #333;
       }
+
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 5px;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: #555;
+      }
+
+      .container {
+        text-align: center;
+        background: white;
+        padding: 30px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 90%;
+        max-width: 400px;
+      }
+
       button {
-        margin: 5px;
-        padding: 10px;
+        margin: 10px;
+        padding: 12px 20px;
+        font-size: 1rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #2563eb;
+        color: white;
+      }
+
+      button:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #2563eb;
+      }
+
+      .header-text {
+        margin-bottom: 30px;
+        font-weight: bold;
       }
     </style>
   </head>
   <body>
-    <h2>Login Page</h2>
-    <button onclick="login()">Login</button>
-    <button onclick="register()">Register</button>
-    <button onclick="logout()">Logout</button>
+    <div class="container">
+      <h1>Customer Orders</h1>
+      <h2>Login Page</h2>
+      <button onclick="login()">Login</button>
+      <button onclick="register()">Register</button>
+    </div>
 
     <script>
       const API_URL = "http://127.0.0.1:8000";
@@ -32,11 +83,6 @@
       // Redirect to register route
       async function register() {
         window.location.href = `${API_URL}/register`;
-      }
-
-      // Redirect to logout route
-      async function logout() {
-        window.location.href = `${API_URL}/logout`;
       }
 
       // Auto-redirect to customer orders if already logged in

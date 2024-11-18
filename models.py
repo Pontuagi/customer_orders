@@ -1,5 +1,7 @@
 """
 Module to define Pydantic models for customer and order input.
+
+It contains two classes: CustomerCreate and OrderCreate.
 """
 
 from typing import Optional
