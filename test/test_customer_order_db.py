@@ -1,14 +1,29 @@
+"""
+Module for testing the customer_order_db module.
+
+Contains a class TestCustomerOrderDB that inherits from unittest.TestCase.
+The class contains the following methods:
+test_connect_to_server_success: Tests the connect_to_server function with a successful connection.
+test_connect_to_server_failure: Tests the connect_to_server function with a failed connection.
+test_create_database_success: Tests the create_database function with successful database creation.
+"""
+
+import os
 import unittest
 from unittest.mock import patch, MagicMock
-import psycopg2
+# import psycopg2
 from customer_order_db import connect_to_server, create_database, create_tables, insert_sample_data
-import os
 
 
 class TestCustomerOrderDB(unittest.TestCase):
-
+    """
+    Class containing the test functions for the customer_order_db module.
+    """
     @patch("customer_order_db.psycopg2.connect")
     def test_connect_to_server_success(self, mock_connect):
+        """
+        Function to test the connect_to_server function.
+        """
         # Mock the connection object
         mock_conn = MagicMock()
         mock_connect.return_value = mock_conn
@@ -26,6 +41,9 @@ class TestCustomerOrderDB(unittest.TestCase):
 
     @patch("customer_order_db.psycopg2.connect")
     def test_connect_to_server_failure(self, mock_connect):
+        """
+        Fuction to test the connect_to_server function with a failed connection.
+        """
         # Simulate connection failure
         mock_connect.side_effect = Exception("Connection failed")
 
@@ -36,6 +54,9 @@ class TestCustomerOrderDB(unittest.TestCase):
     @patch("customer_order_db.connect_to_server")
     @patch("customer_order_db.psycopg2.connect")
     def test_create_database(self, mock_connect, mock_connect_to_server):
+        """
+        Test the create_database function.
+        """
         mock_server_conn = MagicMock()
         mock_cursor = MagicMock()
         mock_server_conn.cursor.return_value.__enter__.return_value = mock_cursor

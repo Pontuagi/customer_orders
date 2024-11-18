@@ -1,16 +1,28 @@
+"""
+Test file to test the send_sms module.
+"""
+
 import unittest
-from unittest.mock import patch, MagicMock
-from send_sms import SendSMS  # Assuming this code is saved in send_sms.py
-import os
+from unittest.mock import patch
+from send_sms import SendSMS
+
 
 class TestSendSMS(unittest.TestCase):
+    """
+    Class containing test methods for the SendSMS class.
+    """
 
     @patch('africastalking.SMS.send')
     def test_sending_order_successful(self, mock_send):
-        # Arrange
-        mock_response = {'status': 'Success', 'data': {'recipient': '+254759505343', 'messageId': '1234567890'}}
+        """
+        Function to test the sending_order method with a successful SMS send.
+        """
+        mock_response = {
+            'status': 'Success',
+            'data': {'recipient': '+254759505343', 'messageId': '1234567890'}
+            }
         mock_send.return_value = mock_response
-        
+
         # Initialize the SendSMS class
         sms_service = SendSMS()
 
@@ -20,7 +32,6 @@ class TestSendSMS(unittest.TestCase):
         order_amount = 10.99
         order_time = "2024-11-14 13:45"
 
-        # Act: Call the sending_order method
         sms_service.sending_order(customer_telephone, order_item, order_amount, order_time)
 
         # Assert: Ensure send method was called with the correct arguments
@@ -40,10 +51,11 @@ class TestSendSMS(unittest.TestCase):
 
     @patch('africastalking.SMS.send')
     def test_sending_order_failed(self, mock_send):
-        # Arrange
+        """
+        Fuction to test the sending_order method with a failed SMS send.
+        """
         mock_send.side_effect = Exception("Network error")
-        
-        # Initialize the SendSMS class
+
         sms_service = SendSMS()
 
         # Example order details
@@ -51,8 +63,6 @@ class TestSendSMS(unittest.TestCase):
         order_item = "Pizza Margherita"
         order_amount = 10.99
         order_time = "2024-11-14 13:45"
-
-        # Act: Call the sending_order method
         sms_service.sending_order(customer_telephone, order_item, order_amount, order_time)
 
         # Assert: Check if exception handling works

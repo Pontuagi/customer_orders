@@ -1,8 +1,11 @@
+"""
+Test file to test the main FastAPI application with pytest.
+"""
+
+from unittest.mock import patch, MagicMock
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
 from main import app
-from db import get_db_connection
 
 # Create a test client
 client = TestClient(app)
@@ -10,6 +13,9 @@ client = TestClient(app)
 # Mock get_db_connection globally in this module
 @pytest.fixture(scope="function")
 def mock_db_connection():
+    """
+    Function to mock the get_db_connection function.
+    """
     with patch('main.get_db_connection') as mock_conn:
         # Set up the mock connection and cursor
         mock_conn_instance = MagicMock()
@@ -25,6 +31,9 @@ def mock_db_connection():
 
 # Test customer creation endpoint
 def test_create_customer(mock_db_connection):
+    """
+    Function to test the create customer endpoint.
+    """
     mock_cursor, _ = mock_db_connection
 
     # Mock the cursor's fetchone method to simulate returning a customer ID
@@ -52,6 +61,9 @@ def test_create_customer(mock_db_connection):
 # Test order creation endpoint
 @patch('main.SendSMS')
 def test_create_order(mock_send_sms, mock_db_connection):
+    """
+    Function to test the create order endpoint.
+    """
     mock_cursor, _ = mock_db_connection
 
     # Mock SMS service
@@ -85,6 +97,9 @@ def test_create_order(mock_send_sms, mock_db_connection):
 
 # Test customer listing endpoint
 def test_list_customers(mock_db_connection):
+    """
+    Funnction to test the list customers endpoint.
+    """
     mock_cursor, _ = mock_db_connection
 
     # Mock the cursor's fetchall method to simulate returning a list of customers
@@ -106,6 +121,9 @@ def test_list_customers(mock_db_connection):
 
 # Test order listing endpoint
 def test_list_orders(mock_db_connection):
+    """
+    Function to test the list orders endpoint.
+    """
     mock_cursor, _ = mock_db_connection
 
     # Mock the cursor's fetchall method to simulate returning a list of orders

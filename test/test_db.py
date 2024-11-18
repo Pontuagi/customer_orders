@@ -1,16 +1,26 @@
+"""
+Module to test the database connection module.
+"""
+
 import unittest
 from unittest.mock import patch, MagicMock
-import psycopg2
-from db import get_db_connection 
 import os
+import psycopg2
+from db import get_db_connection
 
 class TestDatabaseConnection(unittest.TestCase):
+    """
+    Class containing test cases for the database connection module.
+    """
 
     @patch('psycopg2.connect')
     def test_get_db_connection(self, mock_connect):
+        """
+        Function to test the get_db_connection function.
+        """
         # Create a mock connection object
         mock_conn = MagicMock()
-        
+
         # Set the return value of the mocked connect function
         mock_connect.return_value = mock_conn
 

@@ -3,11 +3,10 @@ Module to create and manage the customer_order_db database.
 This module provides functions to create the database, create tables, insert sample data.
 """
 
-import os
 from dotenv import load_dotenv
 import psycopg2
 from psycopg2 import sql
-from db import connect_to_server, get_db_connection, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+from db import connect_to_server, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
 load_dotenv()
 
